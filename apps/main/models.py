@@ -245,4 +245,3 @@ class SimaCategory(models.Model):
     class Meta:
         verbose_name = 'Категория Сима Лэнд'
         verbose_name_plural = 'Категории Сима Лэнд'
-        ordering = ['name']
