@@ -2,7 +2,7 @@ from django.db import models
 
 
 class SimaItem(models.Model):
-    item_id = models.PositiveIntegerField(unique=True)
+    item_id = models.PositiveIntegerField(unique=True, primary_key=True)
     sid = models.PositiveIntegerField(null=True, )
     uid = models.UUIDField(null=True, )
     name = models.CharField(null=True, max_length=255)
@@ -215,6 +215,10 @@ class SimaItem(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'Товар Сима Лэнд'
+        verbose_name_plural = 'Товары Сима Лэнд'
+
 
 class Country(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -224,3 +228,21 @@ class Country(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = 'Страна производитель'
+        verbose_name_plural = 'Страны производители'
+
+
+class SimaCategory(models.Model):
+    cat_id = models.PositiveIntegerField(unique=True, primary_key=True)
+    sid = models.PositiveIntegerField(null=True, )
+    name = models.CharField(null=True, max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Категория Сима Лэнд'
+        verbose_name_plural = 'Категории Сима Лэнд'
+        ordering = ['name']
