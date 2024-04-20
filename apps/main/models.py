@@ -59,7 +59,7 @@ class SimaItem(models.Model):
     has_sound = models.BooleanField(null=True, default=False)
     has_radiocontrol = models.BooleanField(null=True, default=False)
     is_inertial = models.BooleanField(null=True, default=False)
-    is_on_ac_power = models.BooleanField(null=True, default=False)
+    is_on_ac_power = models.CharField(max_length=255, null=True, default='')
     has_rus_voice = models.BooleanField(null=True, default=False)
     has_rus_pack = models.BooleanField(null=True, default=False)
     has_light = models.BooleanField(null=True, default=False)
