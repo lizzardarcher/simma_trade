@@ -13,11 +13,12 @@ admin.site.site_url = ''
 class SimaItemAdmin(admin.ModelAdmin):
     list_display = ('name', 'item_id')
     search_fields = ('name', 'item_id')
+    # list_filter = ('name',)
     ordering = ('-price',)
 
 
 @admin.register(SimaCategory)
-class CountryAdmin(admin.ModelAdmin):
+class SimaCategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'cat_id')
     search_fields = ('name', 'cat_id')
     ordering = ('name',)
@@ -26,4 +27,4 @@ class CountryAdmin(admin.ModelAdmin):
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
     list_display = ('name', 'id')
-    ordering = ('name',)
+    ordering = ('-id',)
