@@ -28,3 +28,16 @@ class SimaCategoryAdmin(admin.ModelAdmin):
 class CountryAdmin(admin.ModelAdmin):
     list_display = ('name', 'id')
     ordering = ('-id',)
+
+
+@admin.register(SimaFilter)
+class SimaFilterAdmin(admin.ModelAdmin):
+    ...
+
+@admin.register(SimaSettings)
+class SimaSettingsAdmin(admin.ModelAdmin):
+    ...
+
+@admin.register(SimaBlacklist)
+class SimaBlacklistAdmin(admin.ModelAdmin):
+    ...
