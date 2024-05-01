@@ -30,7 +30,7 @@ logging.basicConfig(
     handlers=[
         # TimedRotatingFileHandler(filename=log_path, when='D', interval=1, backupCount=5),
         # RotatingFileHandler(filename=log_path, maxBytes=10000, backupCount=5),
-        # logging.StreamHandler(stream=sys.stderr)
+        logging.StreamHandler(stream=sys.stderr)
     ],
 )
 

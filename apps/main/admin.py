@@ -11,9 +11,10 @@ admin.site.site_url = ''
 
 @admin.register(SimaItem)
 class SimaItemAdmin(admin.ModelAdmin):
-    list_display = ('name', 'item_id')
-    search_fields = ('name', 'item_id')
-    # list_filter = ('name',)
+    list_display = ('name', 'item_id',)
+    search_fields = ('name', 'item_id', 'sid')
+    search_help_text = 'Введите артикул'
+    show_full_result_count = False
     ordering = ('-price',)
 
 
@@ -22,6 +23,7 @@ class SimaCategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'cat_id')
     search_fields = ('name', 'cat_id')
     ordering = ('name',)
+    show_full_result_count = False
 
 
 @admin.register(Country)
@@ -34,9 +36,11 @@ class CountryAdmin(admin.ModelAdmin):
 class SimaFilterAdmin(admin.ModelAdmin):
     ...
 
+
 @admin.register(SimaSettings)
 class SimaSettingsAdmin(admin.ModelAdmin):
     ...
+
 
 @admin.register(SimaBlacklist)
 class SimaBlacklistAdmin(admin.ModelAdmin):
