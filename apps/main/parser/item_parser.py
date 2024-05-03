@@ -227,9 +227,9 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
 async def main():
     try:
 
-        logger.info(f"Dropping Table Started")
-        await SimaItem.objects.filter(item_id__gte=0).adelete()
-        logger.info(f"Dropping Table Finished")
+        # logger.info(f"Dropping Table Started")
+        # await SimaItem.objects.filter(item_id__gte=0).adelete()
+        # logger.info(f"Dropping Table Finished")
 
         async with aiohttp.ClientSession() as session:
             tasks = []
