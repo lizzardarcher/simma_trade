@@ -13,7 +13,8 @@ admin.site.site_url = ''
 class SimaItemAdmin(admin.ModelAdmin):
     list_display = ('name', 'item_id',)
     search_fields = ('name', 'item_id', 'sid')
-    search_help_text = 'Введите артикул'
+    # search_fields = ('attrs',)
+    search_help_text = 'Введите артикул или название товара'
     show_full_result_count = False
     ordering = ('-price',)
 

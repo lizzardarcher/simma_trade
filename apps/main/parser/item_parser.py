@@ -16,6 +16,7 @@ import logging
 import time
 from pathlib import Path
 import json
+import re
 
 import aiohttp  # pip install aiohttp aiodns
 
@@ -42,6 +43,7 @@ headers = {
 
 cat_ids = [x.cat_id for x in SimaCategory.objects.all()]
 empty_cat = []
+CLEANR = re.compile('<.*?>')
 
 
 # with open('empty_cat.txt', 'r') as f:
@@ -60,6 +62,12 @@ def get_pairs(max_id, threads):
         counter += 1
     print(data)
     return data
+
+
+
+def cleanhtml(raw_html):
+    cleantext = re.sub(CLEANR, '', raw_html)
+    return cleantext
 
 
 async def get(
@@ -112,6 +120,7 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                                 trademark = item['trademark']['name']
                                             except KeyError:
                                                 pass
+                                            desc = cleanhtml(item['description'])
                                             await SimaItem.objects.aupdate_or_create(defaults={
                                                 "item_id": item['id'],
                                                 "sid": item['sid'],
@@ -145,7 +154,7 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                                 "stuff": item['stuff'],
                                                 "trademark": trademark,
                                                 "categories": item['categories'],
-                                                "description": item['description'],
+                                                "description": desc,
                                                 "stocks": item['stocks'],
                                                 "attrs": item['attrs'],
                                             }, item_id=item['id'])
@@ -165,6 +174,7 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                     trademark = item['trademark']['name']
                                 except KeyError:
                                     pass
+                                desc = cleanhtml(item['description'])
                                 await SimaItem.objects.aupdate_or_create(defaults={
                                     "item_id": item['id'],
                                     "sid": item['sid'],
@@ -198,7 +208,7 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                     "stuff": item['stuff'],
                                     "trademark": trademark,
                                     "categories": item['categories'],
-                                    "description": item['description'],
+                                    "description": desc,
                                     "stocks": item['stocks'],
                                     "attrs": item['attrs'],
                                 }, item_id=item['id'])
