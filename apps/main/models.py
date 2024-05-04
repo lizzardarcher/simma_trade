@@ -111,3 +111,14 @@ class SimaBlacklist(models.Model):
 
     def __str__(self):
         return 'Black List'
+
+
+class XMLFeed(models.Model):
+    file = models.FileField()
+
+    def __str__(self):
+        return self.file.name
+
+    class Meta:
+        verbose_name = 'XML Feed'
+        verbose_name_plural = 'XML Feed'

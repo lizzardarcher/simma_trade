@@ -46,3 +46,8 @@ class SimaSettingsAdmin(admin.ModelAdmin):
 @admin.register(SimaBlacklist)
 class SimaBlacklistAdmin(admin.ModelAdmin):
     ...
+
+
+@admin.register(XMLFeed)
+class XMLFeedAdmin(admin.ModelAdmin):
+    ...
