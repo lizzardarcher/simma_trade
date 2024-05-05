@@ -13,6 +13,7 @@ import requests
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sima_trade.settings")
 django.setup()
 from apps.main.models import *
+from apps.main.parser.black_list import black_cat
 
 log_path = Path(__file__).parent.absolute() / 'log.log'
 logger = logging.getLogger(__name__)
@@ -44,12 +45,13 @@ async def parse(start, stop, task_name):
         data = r2.json()['items']
         for item in data:
             try:
-                await SimaCategory.objects.aupdate_or_create(
-                    defaults={'name': item['name'],
-                              'sid': item['sid']
-                              },
-                    cat_id=item['id'],
-                )
+                if int(item['id']) not in black_cat:
+                    await SimaCategory.objects.aupdate_or_create(
+                        defaults={'name': item['name'],
+                                  'sid': item['sid']
+                                  },
+                        cat_id=item['id'],
+                    )
             except asyncio.CancelledError as e:
                 logger.error(e)
     _te = time.time()
@@ -57,6 +59,11 @@ async def parse(start, stop, task_name):
 
 
 async def main():
+
+    logger.info(f"Dropping Table Started")
+    await SimaCategory.objects.filter(cat_id__gte=0).adelete()
+    logger.info(f"Dropping Table Finished")
+
     background_tasks = set()
     task_1 = asyncio.create_task(parse(start=1, stop=850, task_name=f'task_1'))
     background_tasks.add(task_1)

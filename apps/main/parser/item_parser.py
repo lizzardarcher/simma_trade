@@ -1,8 +1,8 @@
+import ast
 import math
 import sys
 import traceback
 import xml
-import django
 import os
 import asyncio
 import logging
@@ -10,12 +10,17 @@ import time
 from pathlib import Path
 import json
 import re
+import requests
+
+import aiohttp  # pip install aiohttp aiodns
+import django
+
 os.environ['DJANGO_SETTINGS_MODULE'] = 'sima_trade.settings'
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 django.setup()
+
 from apps.main.models import *
-import aiohttp  # pip install aiohttp aiodns
-import requests
+from apps.main.parser.black_list import black_tm, black_sids
 
 log_path = Path(__file__).parent.absolute() / 'log.log'
 logger = logging.getLogger(__name__)
@@ -39,6 +44,7 @@ headers = {
 cat_ids = [x.cat_id for x in SimaCategory.objects.all()]
 empty_cat = []
 CLEANR = re.compile('<.*?>')
+SF = SimaFilter.objects.get(pk=1)
 
 
 # with open('empty_cat.txt', 'r') as f:
@@ -57,7 +63,6 @@ def get_pairs(max_id, threads):
         counter += 1
     print(data)
     return data
-
 
 
 def cleanhtml(raw_html):
@@ -109,10 +114,25 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                     per_page_data = await per_page_resp.text()
                                     per_page_data = json.loads(per_page_data)['items']
                                     for item in per_page_data:
-                                        if item['price'] < 7000:
+                                        stock = 0
+                                        stocks = ast.literal_eval(str(item['stocks']))
+                                        for s in stocks:
+                                            try:
+                                                if s['balance_text']:
+                                                    stock += 50
+                                                else:
+                                                    stock += s['balance']
+                                            except KeyError:
+                                                pass
+                                        if item['price'] < int(SF.max_price) and stock > 0 and int(
+                                                item['box_depth']) <= SF.max_depth and int(
+                                            item['box_height']) <= SF.max_height and int(
+                                            item['box_width']) <= SF.max_width and item['sid'] not in black_sids:
                                             trademark = ''
                                             try:
                                                 trademark = item['trademark']['name']
+                                                if str(trademark).lower() in black_tm:
+                                                    break
                                             except KeyError:
                                                 pass
                                             desc = cleanhtml(item['description'])
@@ -150,7 +170,7 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                                 "trademark": trademark,
                                                 "categories": item['categories'],
                                                 "description": desc,
-                                                "stocks": item['stocks'],
+                                                "stocks": stock,
                                                 "attrs": item['attrs'],
                                             }, item_id=item['id'])
                                     logger.info(
@@ -163,13 +183,30 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
 
                     for item in data_items:
                         try:
-                            if item['price'] < 7000:
+                            stock = 0
+                            stocks = ast.literal_eval(str(item['stocks']))
+                            for s in stocks:
+                                try:
+                                    if s['balance_text']:
+                                        stock += 50
+                                    else:
+                                        stock += s['balance']
+                                except KeyError:
+                                    pass
+                            if item['price'] < int(SF.max_price) and stock > 0 and int(
+                                    item['box_depth']) <= SF.max_depth and int(
+                                    item['box_height']) <= SF.max_height and int(
+                                    item['box_width']) <= SF.max_width and item['sid'] not in black_sids:
+
                                 trademark = ''
                                 try:
                                     trademark = item['trademark']['name']
+                                    if str(trademark).lower() in black_tm:
+                                        break
                                 except KeyError:
                                     pass
                                 desc = cleanhtml(item['description'])
+
                                 await SimaItem.objects.aupdate_or_create(defaults={
                                     "item_id": item['id'],
                                     "sid": item['sid'],
@@ -204,7 +241,7 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                     "trademark": trademark,
                                     "categories": item['categories'],
                                     "description": desc,
-                                    "stocks": item['stocks'],
+                                    "stocks": stock,
                                     "attrs": item['attrs'],
                                 }, item_id=item['id'])
 
@@ -222,9 +259,9 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
 async def main():
     try:
 
-        logger.info(f"Dropping Table Started")
-        await SimaItem.objects.filter(item_id__gte=0).adelete()
-        logger.info(f"Dropping Table Finished")
+        # logger.info(f"Dropping Table Started")
+        # await SimaItem.objects.filter(item_id__gte=0).adelete()
+        # logger.info(f"Dropping Table Finished")
 
         async with aiohttp.ClientSession() as session:
             tasks = []
