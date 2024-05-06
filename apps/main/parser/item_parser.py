@@ -7,6 +7,7 @@ import os
 import asyncio
 import logging
 import time
+from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from pathlib import Path
 import json
 import re
@@ -26,16 +27,15 @@ log_path = Path(__file__).parent.absolute() / 'log.log'
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     format='%(asctime)s %(levelname) -8s %(message)s',
-    level=logging.ERROR,
+    level=logging.WARNING,
     datefmt='%Y.%m.%d %I:%M:%S',
     handlers=[
-        # TimedRotatingFileHandler(filename=log_path, when='D', interval=1, backupCount=5),
+        TimedRotatingFileHandler(filename=log_path, when='D', interval=1, backupCount=5),
         # RotatingFileHandler(filename=log_path, maxBytes=10000, backupCount=5),
-        logging.StreamHandler(stream=sys.stderr)
+        # logging.StreamHandler(stream=sys.stderr)
     ],
 )
 
-# token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MTMxNzA4NDQsIm5iZiI6MTcxMzE3MDg0NCwiZXhwIjoxNzQ0NzA2ODQ0LCJqdGkiOjY1NjI1MTB9.Fc2FYDKEpcIW8sc6V5ccY5su81BE61L6DGtpWUwdjTs'
 headers = {
     'Content-Type': 'application/json',
     'Authorization': f'Bearer {SimaSettings.objects.get(pk=1).token}',
@@ -45,11 +45,6 @@ cat_ids = [x.cat_id for x in SimaCategory.objects.all()]
 empty_cat = []
 CLEANR = re.compile('<.*?>')
 SF = SimaFilter.objects.get(pk=1)
-
-
-# with open('empty_cat.txt', 'r') as f:
-#     cat = f.readline().replace('\n', '')
-#     empty_cat.append(int(cat))
 
 
 def get_pairs(max_id, threads):
@@ -70,11 +65,7 @@ def cleanhtml(raw_html):
     return cleantext
 
 
-async def get(
-        session: aiohttp.ClientSession,
-        color: str,
-        **kwargs
-) -> dict:
+async def get( session: aiohttp.ClientSession, color: str, **kwargs) -> dict:
     url = f"https://api.com/{color}/"
     print(f"Requesting {url}")
     resp = await session.request('GET', url=url, **kwargs)
@@ -126,8 +117,8 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                                 pass
                                         if item['price'] < int(SF.max_price) and stock > 0 and int(
                                                 item['box_depth']) <= SF.max_depth and int(
-                                            item['box_height']) <= SF.max_height and int(
-                                            item['box_width']) <= SF.max_width and item['sid'] not in black_sids:
+                                                item['box_height']) <= SF.max_height and int(
+                                                item['box_width']) <= SF.max_width and item['sid'] not in black_sids:
                                             trademark = ''
                                             try:
                                                 trademark = item['trademark']['name']
@@ -253,16 +244,15 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                 logger.error(traceback.format_exc().__str__())
         await asyncio.sleep(1)
     _te = time.time()
-    logger.info(f"{task_name} finished in {_ts - _te} seconds")
+    logger.warning(f"[{task_name}] [ cat: {str(start)} - {str(stop)}] [finished in {str(float((_ts - _te)/60))} minutes]")
 
 
 async def main():
     try:
 
-        # logger.info(f"Dropping Table Started")
-        # await SimaItem.objects.filter(item_id__gte=0).adelete()
-        # logger.info(f"Dropping Table Finished")
-
+        logger.info(f"Dropping Table Started")
+        await SimaItem.objects.filter(item_id__gte=0).adelete()
+        logger.info(f"Dropping Table Finished")
         async with aiohttp.ClientSession() as session:
             tasks = []
             for i in get_pairs(max_id=77000, threads=32):
@@ -274,4 +264,7 @@ async def main():
 
 
 if __name__ == '__main__':
+    ts = time.time()
     asyncio.run(main())
+    te = time.time()
+    logger.warning(f'[Total Finished in {str(float((te - ts)/60))} minutes]')
