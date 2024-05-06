@@ -26,7 +26,7 @@ log_path = Path(__file__).parent.absolute() / 'log.log'
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     format='%(asctime)s %(levelname) -8s %(message)s',
-    level=logging.DEBUG,
+    level=logging.ERROR,
     datefmt='%Y.%m.%d %I:%M:%S',
     handlers=[
         # TimedRotatingFileHandler(filename=log_path, when='D', interval=1, backupCount=5),
@@ -133,7 +133,7 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                                 trademark = item['trademark']['name']
                                                 if str(trademark).lower() in black_tm:
                                                     break
-                                            except KeyError:
+                                            except:
                                                 pass
                                             desc = cleanhtml(item['description'])
                                             await SimaItem.objects.aupdate_or_create(defaults={
@@ -203,7 +203,7 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                     trademark = item['trademark']['name']
                                     if str(trademark).lower() in black_tm:
                                         break
-                                except KeyError:
+                                except:
                                     pass
                                 desc = cleanhtml(item['description'])
 
