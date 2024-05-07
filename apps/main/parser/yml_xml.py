@@ -1,7 +1,7 @@
 import math
 import sys
 import time
-import codecs
+import asyncio
 import django
 import os
 import ast
@@ -33,20 +33,7 @@ logging.basicConfig(
 )
 
 
-def get_pairs(max_id, threads):
-    data = []
-    counter = 1
-    l_ids = [x for x in range(1, max_id + 1)]
-    chunk_size = math.floor(max_id / threads)
-    chunks = [l_ids[i:i + chunk_size] for i in range(0, len(l_ids), chunk_size)]
-    for chunk in chunks:
-        data.append((f'thread-{counter}', chunk[0], chunk[-1]))
-        counter += 1
-    print(data)
-    return data
-
-
-def create_xml(max_count, file_count):
+async def create_xml(max_count, file_count):
     pairs = []
     l_ids = [x for x in range(1, max_count + 1)]
     chunk_size = math.floor(max_count / file_count)
@@ -57,10 +44,8 @@ def create_xml(max_count, file_count):
     print(pairs)
     for pair in pairs:
 
-        # path = Path(__file__).resolve().parent.parent.parent.parent.joinpath("static").joinpath("media") / f'offers.xml'
         file = f'offers{str(counter)}.xml'
         path = Path(__file__).resolve().parent.parent.parent.parent.joinpath("static").joinpath("media") / file
-        path2 = Path(__file__).resolve().parent.parent.parent.parent.joinpath("static").joinpath("media") / 'file.xml'
         root = ET.Element("yml_catalog", attrib={"date": f"{local_time}"})
         shop = ET.SubElement(root, "shop")
 
@@ -68,8 +53,8 @@ def create_xml(max_count, file_count):
         categories = ET.SubElement(shop, "categories")
         cts = set()
         logger.info('Creating categories...')
-
-        for item in iter(SimaItem.objects.filter(stocks__gte=2).order_by('item_id')[pair[0]:pair[1]]):
+        items = SimaItem.objects.filter(stocks__gte=2).order_by('item_id')[pair[0]:pair[1]]
+        for item in iter(items):
             cts.add(ast.literal_eval(item.categories)[0])
 
         logger.info('Adding categories to XML ...')
@@ -85,7 +70,7 @@ def create_xml(max_count, file_count):
         ts = time.time()
         logger.info('Creating items...')
 
-        for item in iter(SimaItem.objects.filter(stocks__gte=2).order_by('item_id')[pair[0]:pair[1]]):
+        for item in iter(items):
             offer = ET.SubElement(offers, "offer", attrib={"id": f"{str(item.item_id)}", "available": "true"})
 
             # ET.SubElement(offer, "url").text = "http://www.abc.ru/158.html"
@@ -164,26 +149,30 @@ def create_xml(max_count, file_count):
         ts = time.time()
         logger.info('Writing XML file to DB...')
 
-        XMLFeed.objects.create(file=file)
-        XMLFeed.objects.update_or_create(defaults={'file':file}, pk=counter)
+        # XMLFeed.objects.create(file=file)
+        await XMLFeed.objects.aupdate_or_create(defaults={'file': file}, id=counter)
 
         te = time.time()
         logger.info(f'Writing XML file to DB finished in {te - ts:.2f} seconds')
         counter += 1
 
 
-if __name__ == '__main__':
+async def main():
     try:
         while True:
             try:
                 os.system('systemctl stop aioparser.service')
-                time.sleep(5)
+                await asyncio.sleep(15)
                 XMLFeed.objects.filter(pk__gte=1).delete()
-                create_xml(max_count=SimaItem.objects.filter(stocks__gte=2).order_by('item_id').count(), file_count=20)
+                total = SimaItem.objects.filter(stocks__gte=2).order_by('item_id').count()
+                await create_xml(max_count=total, file_count=20)
                 os.system('systemctl start aioparser.service')
-                time.sleep(60*60*4)
+                await asyncio.sleep(60*60*4)
             except OperationalError:
                 ...
                 # os.system('systemctl restart yml.service')
     except KeyboardInterrupt:
         sys.exit(0)
+
+if __name__ == '__main__':
+    asyncio.run(main())
