@@ -16,7 +16,7 @@ class SimaItemAdmin(admin.ModelAdmin):
     # search_fields = ('attrs',)
     search_help_text = 'Введите артикул или название товара'
     show_full_result_count = False
-    ordering = ('-price',)
+    ordering = ('item_id',)
 
 
 @admin.register(SimaCategory)

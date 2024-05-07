@@ -22,6 +22,7 @@ class SimaItem(models.Model):
     max_qty = models.PositiveIntegerField(null=True, )
     min_qty = models.PositiveIntegerField(null=True, )
     vat = models.DecimalField(null=True, max_digits=5, decimal_places=2)
+    country = models.CharField(null=True, max_length=255, default='')
     supplier_code = models.CharField(null=True, max_length=50)
     weight = models.DecimalField(null=True, max_digits=10, decimal_places=2, default=0)
     photo_url = models.URLField(null=True, blank=True)
@@ -35,8 +36,9 @@ class SimaItem(models.Model):
     trademark = models.CharField(null=True, max_length=100, blank=True)
     categories = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    stocks = models.TextField(null=True, blank=True)
+    stocks = models.IntegerField(null=True, blank=True, default=0)
     attrs = models.TextField(null=True, blank=True)
+
 
     def __str__(self):
         return self.name

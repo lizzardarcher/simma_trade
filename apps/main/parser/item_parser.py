@@ -255,7 +255,7 @@ async def main():
         logger.info(f"Dropping Table Finished")
         async with aiohttp.ClientSession() as session:
             tasks = []
-            for i in get_pairs(max_id=77000, threads=32):
+            for i in get_pairs(max_id=77000, threads=48):
                 tasks.append(parse(session=session, start=i[1], stop=i[2], task_name=i[0]))
             htmls = await asyncio.gather(*tasks, return_exceptions=True)
             return htmls
