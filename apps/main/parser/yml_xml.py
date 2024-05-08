@@ -84,7 +84,7 @@ async def create_xml(max_count, file_count):
             item_price_max = float(item.price_max) * item.min_qty
 
             for p in prices.price_ratio:
-                if p[0] >= float(item_price):
+                if p[0] <= float(item_price):
                     item_price = float(item_price) * p[1]
                     item_price_max = float(item_price_max) * p[1]
                     break
