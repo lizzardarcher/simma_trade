@@ -2,6 +2,8 @@ import math
 import sys
 import time
 import asyncio
+import traceback
+
 import django
 import os
 import ast
@@ -33,8 +35,8 @@ logging.basicConfig(
 )
 
 files_avail = [
-    # 1,
-    2,
+    1,
+    # 2,
     # 3,
     # 4,
     # 5,
@@ -64,12 +66,11 @@ async def create_xml(max_count, file_count):
     for chunk in chunks:
         pairs.append((chunk[0], chunk[-1]))
     counter = 1
-    if counter in files_avail:
-        print(pairs)
-        for pair in pairs:
-
-            file = f'offers{str(counter)}.xml'
-            path = Path(__file__).resolve().parent.parent.parent.parent.joinpath("static").joinpath("media") / file
+    file = f'offers{str(counter)}.xml'
+    path = Path(__file__).resolve().parent.parent.parent.parent.joinpath("static").joinpath("media") / file
+    print(pairs)
+    for pair in pairs:
+        try:
             root = ET.Element("yml_catalog", attrib={"date": f"{local_time}"})
             shop = ET.SubElement(root, "shop")
 
@@ -104,14 +105,21 @@ async def create_xml(max_count, file_count):
                     item_name = f"{item_name} ({str(item.min_qty)} шт.)"
                 ET.SubElement(offer, "name").text = f"{item_name}"
 
+                print('Название товара:', item.name)
                 item_price = float(item.price) * item.min_qty
+                print('item_price', item.price, '*', item.min_qty, '=', item_price)
                 item_price_max = float(item.price_max) * item.min_qty
+                print('item_price_max', item.price, '*', item.min_qty, '=', item_price)
 
                 for p in prices.price_ratio:
                     if p[0] <= float(item_price):
+                        print('price match with values', p[0], p[1], item_price)
                         item_price = float(item_price) * p[1]
+                        print('item_price after', item_price)
                         item_price_max = float(item_price_max) * p[1]
+                        print('item_price_max after', item_price)
                         break
+                await asyncio.sleep(10)
                 ET.SubElement(offer, "price").text = f"{str(item_price)}"
                 ET.SubElement(offer, "oldprice").text = f"{str(item_price_max)}"
 
@@ -157,33 +165,35 @@ async def create_xml(max_count, file_count):
 
                 param1 = ET.SubElement(offer, "param", attrib={"name": "Материал"})
                 param1.text = f"{item.stuff}"
+        except:
+            print(traceback.format_exc())
 
-            te = time.time()
-            logger.info(f'Creating items finished in {te - ts:.2f} seconds')
+        te = time.time()
+        logger.info(f'Creating items finished in {te - ts:.2f} seconds')
 
-            ts = time.time()
-            logger.info(f'Creating XML file {file}...')
+        ts = time.time()
+        logger.info(f'Creating XML file {file}...')
 
-            tree = ET.ElementTree(root)
-            tree.write(path, encoding="UTF-8", xml_declaration=True)
+        tree = ET.ElementTree(root)
+        tree.write(path, encoding="UTF-8", xml_declaration=True)
 
-            te = time.time()
-            logger.info(f'Creating XML file {file} finished in {te - ts:.2f} seconds')
+        te = time.time()
+        logger.info(f'Creating XML file {file} finished in {te - ts:.2f} seconds')
 
-            ts = time.time()
-            logger.info('Writing XML file to DB...')
+        ts = time.time()
+        logger.info('Writing XML file to DB...')
 
-            await XMLFeed.objects.aupdate_or_create(defaults={'file': file}, id=counter)
-            te = time.time()
-            logger.info(f'Writing XML file to DB finished in {te - ts:.2f} seconds')
-            counter += 1
+        await XMLFeed.objects.aupdate_or_create(defaults={'file': file}, id=counter)
+        te = time.time()
+        logger.info(f'Writing XML file to DB finished in {te - ts:.2f} seconds')
+        counter += 1
 
 
 async def main():
     try:
         while True:
             try:
-                total = SimaItem.objects.filter(stocks__gte=2).order_by('item_id').count()
+                total = SimaItem.objects.all().count()
                 await create_xml(max_count=total, file_count=20)
             except OperationalError:
                 ...

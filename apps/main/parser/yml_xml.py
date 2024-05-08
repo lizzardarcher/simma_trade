@@ -80,14 +80,22 @@ async def create_xml(max_count, file_count):
                 item_name = f"{item_name} ({str(item.min_qty)} шт.)"
             ET.SubElement(offer, "name").text = f"{item_name}"
 
+            # print('Название товара:', item.name)
             item_price = float(item.price) * item.min_qty
+            # print('item_price', item.price, '*', item.min_qty, '=', item_price)
             item_price_max = float(item.price_max) * item.min_qty
+            # print('item_price_max', item.price, '*', item.min_qty, '=', item_price)
 
             for p in prices.price_ratio:
-                if p[0] <= float(item_price):
+                if float(item_price) <= p[0]:
+                    # print('price match with values', p[0], p[1], item_price)
                     item_price = float(item_price) * p[1]
+                    # print('item_price after', item_price)
                     item_price_max = float(item_price_max) * p[1]
+                    # print('item_price_max after', item_price)
                     break
+            # await asyncio.sleep(10)
+
             ET.SubElement(offer, "price").text = f"{str(item_price)}"
             ET.SubElement(offer, "oldprice").text = f"{str(item_price_max)}"
 
@@ -111,8 +119,8 @@ async def create_xml(max_count, file_count):
             try:
                 for i in ast.literal_eval(item.attrs):
                     if i['numrange_value']:
-                        code = ast.literal_eval(i['numrange_value'])[0]
-                        if not str(code).startswith('2'):
+                        code = str(ast.literal_eval(i['numrange_value'])[0])
+                        if not code.startswith('2') and not code.startswith('1') and len(code) > 8:
                             barcode = code
                             break
             except:
@@ -163,16 +171,17 @@ async def main():
             try:
                 os.system('systemctl stop aioparser.service')
                 await asyncio.sleep(15)
-                XMLFeed.objects.filter(pk__gte=1).delete()
-                total = SimaItem.objects.filter(stocks__gte=2).order_by('item_id').count()
+                # XMLFeed.objects.filter(pk__gte=1).delete()
+                total = SimaItem.objects.all().count()
                 await create_xml(max_count=total, file_count=20)
                 os.system('systemctl start aioparser.service')
-                await asyncio.sleep(60*60*4)
+                await asyncio.sleep(60 * 60 * 4)  # seconds * minutes * hours
             except OperationalError:
                 ...
                 # os.system('systemctl restart yml.service')
     except KeyboardInterrupt:
         sys.exit(0)
+
 
 if __name__ == '__main__':
     asyncio.run(main())
