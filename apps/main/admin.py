@@ -11,7 +11,7 @@ admin.site.site_url = ''
 
 @admin.register(SimaItem)
 class SimaItemAdmin(admin.ModelAdmin):
-    list_display = ('name', 'item_id',)
+    list_display = ('name', 'item_id', 'stocks')
     search_fields = ('name', 'item_id', 'sid')
     # search_fields = ('attrs',)
     search_help_text = 'Введите артикул или название товара'
