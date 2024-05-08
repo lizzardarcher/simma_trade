@@ -253,6 +253,7 @@ async def main():
         logger.info(f"Dropping Table Started")
         await SimaItem.objects.filter(item_id__gte=0).adelete()
         logger.info(f"Dropping Table Finished")
+
         async with aiohttp.ClientSession() as session:
             tasks = []
             for i in get_pairs(max_id=77000, threads=48):
