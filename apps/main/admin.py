@@ -14,7 +14,7 @@ class SimaItemAdmin(admin.ModelAdmin):
     list_display = ('name', 'item_id', 'stocks')
     search_fields = ('name', 'item_id', 'sid')
     # search_fields = ('attrs',)
-    search_help_text = 'Введите артикул или название товара'
+    search_help_text = 'Введите артикул, id или название товара'
     show_full_result_count = False
     ordering = ('item_id',)
 
