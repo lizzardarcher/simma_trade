@@ -23,7 +23,7 @@ django.setup()
 from apps.main.models import *
 from apps.main.parser.black_list import black_tm, black_sids
 
-log_path = Path(__file__).parent.absolute() / 'log.log'
+log_path = Path(__file__).parent.absolute() / 'log_parser.log'
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     format='%(asctime)s %(levelname) -8s %(message)s',

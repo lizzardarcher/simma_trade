@@ -2,6 +2,8 @@ import math
 import sys
 import time
 import asyncio
+from logging.handlers import RotatingFileHandler
+
 import django
 import os
 import ast
@@ -18,8 +20,9 @@ django.setup()
 from apps.main.models import *
 from apps.main.parser import prices
 
+os.environ["PYTHONMAXSIZE"] = "3221225472"
 local_time = datetime.now().strftime('%Y-%m-%dT%H:%M+05:00')
-log_path = Path(__file__).parent.absolute() / 'log.log'
+log_path = Path(__file__).parent.absolute() / 'log_xml.log'
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     format='%(asctime)s %(levelname) -8s %(message)s',
@@ -27,7 +30,7 @@ logging.basicConfig(
     datefmt='%Y.%m.%d %I:%M:%S',
     handlers=[
         # TimedRotatingFileHandler(filename=log_path, when='D', interval=1, backupCount=5),
-        # RotatingFileHandler(filename=log_path, maxBytes=10000, backupCount=5),
+        RotatingFileHandler(filename=log_path, maxBytes=10000, backupCount=5),
         logging.StreamHandler(stream=sys.stderr)
     ],
 )
@@ -41,7 +44,7 @@ async def create_xml(max_count, file_count):
     for chunk in chunks:
         pairs.append((chunk[0], chunk[-1]))
     counter = 1
-    print(pairs)
+    logger.info(pairs)
     for pair in pairs:
 
         file = f'offers{str(counter)}.xml'
@@ -54,21 +57,23 @@ async def create_xml(max_count, file_count):
 
         #  Начало Создания категорий
         cts = set()
-        logger.info('Creating categories...')
-        items = SimaItem.objects.filter(stocks__gte=2).order_by('item_id')[pair[0]:pair[1]]
+        logger.info(f'File: {file} Creating categories...')
+        items = SimaItem.objects.all().order_by('item_id')[pair[0]:pair[1]]
         for item in iter(items):
             # print('Категории', sorted(ast.literal_eval(item.categories)), type(ast.literal_eval(item.categories)))
             for i in sorted(ast.literal_eval(item.categories)):
-                if not i.startswith('7'):
-                    cts.add(i)
+                # if not i.startswith('7'):
+                cts.add(i)
             # cts.add(sorted(ast.literal_eval(item.categories))[0])
             # await asyncio.sleep(5)
-        print('Длина списка категорий', len(cts))
+        # print('Длина списка категорий', len(cts))
         logger.info('Adding categories to XML ...')
         for cat_id in cts:
-            ET.SubElement(categories, "category", attrib={"id": f"{str(cat_id)}"})  # "parentId": "3798"
-            ET.SubElement(categories, "category").text = f"{SimaCategory.objects.get(pk=cat_id).name}"
-
+             # "parentId": "3798"
+            try:
+                ET.SubElement(categories, "category", attrib={"id": f"{str(cat_id)}"}).text = f"{SimaCategory.objects.get(cat_id=cat_id).name}"
+            except:
+                ET.SubElement(categories, "category", attrib={"id": f"{str(cat_id)}"})
         #  Создание категорий Закончено
         te = time.time()
         logger.info(f'Creating categories finished in {te - ts:.2f} seconds')
@@ -80,7 +85,7 @@ async def create_xml(max_count, file_count):
         ts = time.time()
         logger.info('Creating items...')
 
-        print('Длина списка товаров', items.count())
+        # print('Длина списка товаров', items.count())
 
         for item in iter(items):
             offer = ET.SubElement(offers, "offer", attrib={"id": f"{str(item.item_id)}", "available": "true"})
@@ -182,12 +187,12 @@ async def main():
         while True:
             try:
                 os.system('systemctl stop aioparser.service')
-                await asyncio.sleep(15)
+                await asyncio.sleep(5)
 
                 # XMLFeed.objects.filter(pk__gte=1).delete()
 
                 total = SimaItem.objects.all().count()
-                await create_xml(max_count=total, file_count=20)
+                await create_xml(max_count=total, file_count=10)
 
                 os.system('systemctl start aioparser.service')
                 await asyncio.sleep(60 * 60 * 3)  # seconds * minutes * hours
