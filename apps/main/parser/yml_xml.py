@@ -192,7 +192,7 @@ async def main():
                 # XMLFeed.objects.filter(pk__gte=1).delete()
 
                 total = SimaItem.objects.all().count()
-                await create_xml(max_count=total, file_count=10)
+                await create_xml(max_count=total, file_count=5)
 
                 os.system('systemctl start aioparser.service')
                 await asyncio.sleep(60 * 60 * 3)  # seconds * minutes * hours
