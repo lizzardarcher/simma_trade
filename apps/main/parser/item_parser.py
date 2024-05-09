@@ -115,7 +115,7 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                                     stock += s['balance']
                                             except KeyError:
                                                 pass
-                                        if item['price'] < int(SF.max_price) and stock > 0 and int(
+                                        if item['price'] < int(SF.max_price) and int(
                                                 item['box_depth']) <= SF.max_depth and int(
                                                 item['box_height']) <= SF.max_height and int(
                                                 item['box_width']) <= SF.max_width and item['sid'] not in black_sids:
@@ -184,7 +184,7 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                         stock += s['balance']
                                 except KeyError:
                                     pass
-                            if item['price'] < int(SF.max_price) and stock > 0 and int(
+                            if item['price'] < int(SF.max_price) and int(
                                     item['box_depth']) <= SF.max_depth and int(
                                     item['box_height']) <= SF.max_height and int(
                                     item['box_width']) <= SF.max_width and item['sid'] not in black_sids:
@@ -250,13 +250,13 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
 async def main():
     try:
 
-        logger.info(f"Dropping Table Started")
-        await SimaItem.objects.filter(item_id__gte=0).adelete()
-        logger.info(f"Dropping Table Finished")
+        # logger.info(f"Dropping Table Started")
+        # await SimaItem.objects.filter(item_id__gte=0).adelete()
+        # logger.info(f"Dropping Table Finished")
 
         async with aiohttp.ClientSession() as session:
             tasks = []
-            for i in get_pairs(max_id=77000, threads=48):
+            for i in get_pairs(max_id=77000, threads=64):
                 tasks.append(parse(session=session, start=i[1], stop=i[2], task_name=i[0]))
             htmls = await asyncio.gather(*tasks, return_exceptions=True)
             return htmls

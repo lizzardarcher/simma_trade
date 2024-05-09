@@ -7,10 +7,10 @@ SECRET_KEY = 'django-insecure-8e^^l1)bfnj7bjcgil2#2!cxa#z*=p$tib98y-%f7swc2*%2mi
 
 DEBUG = True
 
-# ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'sima-trade.ru']
-ALLOWED_HOSTS = ['94.241.143.223', 'localhost', '127.0.0.1', 'sima-trade.ru']
-CSRF_TRUSTED_ORIGINS = ['https://*.sima-trade.ru','https://*.127.0.0.1']
+ALLOWED_HOSTS = ['94.241.143.223', 'localhost', '127.0.0.1', 'sima-trade.ru', '*sima-trade.ru', 'www.sima-trade.ru']
+CSRF_TRUSTED_ORIGINS = ['https://*.sima-trade.ru', 'https://*.127.0.0.1']
 
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # SECURE_SSL_REDIRECT = True
 # SESSION_COOKIE_SECURE = True
 # CSRF_COOKIE_SECURE = True

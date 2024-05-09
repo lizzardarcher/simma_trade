@@ -51,15 +51,25 @@ async def create_xml(max_count, file_count):
 
         ts = time.time()
         categories = ET.SubElement(shop, "categories")
+
+        #  Начало Создания категорий
         cts = set()
         logger.info('Creating categories...')
         items = SimaItem.objects.filter(stocks__gte=2).order_by('item_id')[pair[0]:pair[1]]
         for item in iter(items):
-            cts.add(ast.literal_eval(item.categories)[0])
-
+            # print('Категории', sorted(ast.literal_eval(item.categories)), type(ast.literal_eval(item.categories)))
+            for i in sorted(ast.literal_eval(item.categories)):
+                if not i.startswith('7'):
+                    cts.add(i)
+            # cts.add(sorted(ast.literal_eval(item.categories))[0])
+            # await asyncio.sleep(5)
+        print('Длина списка категорий', len(cts))
         logger.info('Adding categories to XML ...')
         for cat_id in cts:
             ET.SubElement(categories, "category", attrib={"id": f"{str(cat_id)}"})  # "parentId": "3798"
+            ET.SubElement(categories, "category").text = f"{SimaCategory.objects.get(pk=cat_id).name}"
+
+        #  Создание категорий Закончено
         te = time.time()
         logger.info(f'Creating categories finished in {te - ts:.2f} seconds')
 
@@ -69,6 +79,8 @@ async def create_xml(max_count, file_count):
 
         ts = time.time()
         logger.info('Creating items...')
+
+        print('Длина списка товаров', items.count())
 
         for item in iter(items):
             offer = ET.SubElement(offers, "offer", attrib={"id": f"{str(item.item_id)}", "available": "true"})
@@ -99,7 +111,7 @@ async def create_xml(max_count, file_count):
             ET.SubElement(offer, "price").text = f"{str(item_price)}"
             ET.SubElement(offer, "oldprice").text = f"{str(item_price_max)}"
 
-            ET.SubElement(offer, "categoryId").text = f"{str(ast.literal_eval(item.categories)[0])}"
+            ET.SubElement(offer, "categoryId").text = f"{sorted(ast.literal_eval(item.categories))[0]}"
             ET.SubElement(offer, "picture").text = f"{item.photo_url}"
 
             item_vat = 0
@@ -171,11 +183,14 @@ async def main():
             try:
                 os.system('systemctl stop aioparser.service')
                 await asyncio.sleep(15)
+
                 # XMLFeed.objects.filter(pk__gte=1).delete()
+
                 total = SimaItem.objects.all().count()
                 await create_xml(max_count=total, file_count=20)
+
                 os.system('systemctl start aioparser.service')
-                await asyncio.sleep(60 * 60 * 4)  # seconds * minutes * hours
+                await asyncio.sleep(60 * 60 * 3)  # seconds * minutes * hours
             except OperationalError:
                 ...
                 # os.system('systemctl restart yml.service')
