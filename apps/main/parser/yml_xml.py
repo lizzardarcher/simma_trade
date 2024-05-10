@@ -66,7 +66,6 @@ async def create_xml(max_count, file_count):
                 cts.add(i)
             # cts.add(sorted(ast.literal_eval(item.categories))[0])
             # await asyncio.sleep(5)
-        # print('Длина списка категорий', len(cts))
         logger.info('Adding categories to XML ...')
         for cat_id in cts:
              # "parentId": "3798"
@@ -84,8 +83,8 @@ async def create_xml(max_count, file_count):
 
         ts = time.time()
         logger.info('Creating items...')
-
-        # print('Длина списка товаров', items.count())
+        logger.info(f'Длина списка категорий {len(cts)}')
+        logger.info(f'Длина списка товаров {items.count()}')
 
         for item in iter(items):
             offer = ET.SubElement(offers, "offer", attrib={"id": f"{str(item.item_id)}", "available": "true"})

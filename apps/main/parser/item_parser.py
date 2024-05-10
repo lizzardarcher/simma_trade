@@ -21,7 +21,7 @@ os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 django.setup()
 
 from apps.main.models import *
-from apps.main.parser.black_list import black_tm, black_sids
+from apps.main.parser.black_list import black_tm, black_sids, black_cat
 
 log_path = Path(__file__).parent.absolute() / 'log_parser.log'
 logger = logging.getLogger(__name__)
@@ -80,7 +80,7 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
     per_page = 100
     _ts = time.time()
     for i in range(start, stop):
-        if i in cat_ids and i not in empty_cat:
+        if i in cat_ids and i not in black_cat:
 
             try:
                 resp = await session.request(method='GET',
@@ -250,9 +250,9 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
 async def main():
     try:
 
-        # logger.info(f"Dropping Table Started")
-        # await SimaItem.objects.filter(item_id__gte=0).adelete()
-        # logger.info(f"Dropping Table Finished")
+        logger.info(f"Dropping Table Started")
+        await SimaItem.objects.filter(item_id__gte=0).adelete()
+        logger.info(f"Dropping Table Finished")
 
         async with aiohttp.ClientSession() as session:
             tasks = []
