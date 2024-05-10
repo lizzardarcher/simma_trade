@@ -30,8 +30,8 @@ logging.basicConfig(
     level=logging.WARNING,
     datefmt='%Y.%m.%d %I:%M:%S',
     handlers=[
-        TimedRotatingFileHandler(filename=log_path, when='D', interval=1, backupCount=5),
-        # RotatingFileHandler(filename=log_path, maxBytes=10000, backupCount=5),
+        # TimedRotatingFileHandler(filename=log_path, when='D', interval=1, backupCount=5),
+        RotatingFileHandler(filename=log_path, maxBytes=10000, backupCount=5),
         # logging.StreamHandler(stream=sys.stderr)
     ],
 )
@@ -250,9 +250,9 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
 async def main():
     try:
 
-        logger.info(f"Dropping Table Started")
-        await SimaItem.objects.filter(item_id__gte=0).adelete()
-        logger.info(f"Dropping Table Finished")
+        # logger.info(f"Dropping Table Started")
+        # await SimaItem.objects.filter(item_id__gte=0).adelete()
+        # logger.info(f"Dropping Table Finished")
 
         async with aiohttp.ClientSession() as session:
             tasks = []
