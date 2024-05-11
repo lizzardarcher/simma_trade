@@ -65,7 +65,7 @@ def cleanhtml(raw_html):
     return cleantext
 
 
-async def get( session: aiohttp.ClientSession, color: str, **kwargs) -> dict:
+async def get(session: aiohttp.ClientSession, color: str, **kwargs) -> dict:
     url = f"https://api.com/{color}/"
     print(f"Requesting {url}")
     resp = await session.request('GET', url=url, **kwargs)
@@ -77,8 +77,8 @@ async def get( session: aiohttp.ClientSession, color: str, **kwargs) -> dict:
 
 
 async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs):
+    ts = time.time()
     per_page = 100
-    _ts = time.time()
     for i in range(start, stop):
         if i in cat_ids and i not in black_cat:
 
@@ -117,8 +117,8 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                                 pass
                                         if item['price'] < int(SF.max_price) and int(
                                                 item['box_depth']) <= SF.max_depth and int(
-                                                item['box_height']) <= SF.max_height and int(
-                                                item['box_width']) <= SF.max_width and item['sid'] not in black_sids:
+                                            item['box_height']) <= SF.max_height and int(
+                                            item['box_width']) <= SF.max_width and item['sid'] not in black_sids:
                                             trademark = ''
                                             try:
                                                 trademark = item['trademark']['name']
@@ -186,8 +186,8 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                     pass
                             if item['price'] < int(SF.max_price) and int(
                                     item['box_depth']) <= SF.max_depth and int(
-                                    item['box_height']) <= SF.max_height and int(
-                                    item['box_width']) <= SF.max_width and item['sid'] not in black_sids:
+                                item['box_height']) <= SF.max_height and int(
+                                item['box_width']) <= SF.max_width and item['sid'] not in black_sids:
 
                                 trademark = ''
                                 try:
@@ -243,8 +243,9 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
             except:
                 logger.error(traceback.format_exc().__str__())
         await asyncio.sleep(1)
-    _te = time.time()
-    logger.warning(f"[{task_name}] [ cat: {str(start)} - {str(stop)}] [finished in {str(float((_ts - _te)/60))} minutes]")
+    te = time.time()
+    logger.warning(
+        f"[{task_name}] [ cat: {str(start)} - {str(stop)}] [finished in {str(float((ts - te) / 60))} minutes]")
 
 
 async def main():
@@ -268,4 +269,4 @@ if __name__ == '__main__':
     ts = time.time()
     asyncio.run(main())
     te = time.time()
-    logger.warning(f'[Total Finished in {str(float((te - ts)/60))} minutes]')
+    logger.warning(f'[Total Finished in {str(float((te - ts) / 60))} minutes]')
