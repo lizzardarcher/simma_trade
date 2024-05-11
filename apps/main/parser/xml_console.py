@@ -36,7 +36,6 @@ logging.basicConfig(
 
 
 async def create_xml(max_count, file_count):
-    print('#'*140, '\n', '#'*140)
     pairs = []
     l_ids = [x for x in range(1, max_count + 1)]
     chunk_size = math.floor(max_count / file_count)
@@ -47,7 +46,7 @@ async def create_xml(max_count, file_count):
     counter = 1
 
     for pair in pairs:
-
+        print('#' * 140)
         ts = time.time()
         file = f'offers{str(counter)}.xml'
         path = Path(__file__).resolve().parent.parent.parent.parent.joinpath("static").joinpath("media") / file
@@ -160,7 +159,7 @@ async def create_xml(max_count, file_count):
         te = time.time()
         logger.info(f'Длина списка категорий {len(cts)}')
         logger.info(f'Длина списка товаров {items_count}')
-        logger.info(f'Запись файла завершена за: {te - ts:.2f} секунд')
+        logger.info(f'Запись файла завершена за: {math.floor((te - ts) / 60)}:{math.floor((te - ts) % 60)} минут')
 
 
 async def main():
