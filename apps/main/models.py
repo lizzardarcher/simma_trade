@@ -106,9 +106,9 @@ class SimaSettings(models.Model):
 
 
 class SimaBlacklist(models.Model):
-    categories = models.CharField(null=True, max_length=1000000, blank=True)
-    items = models.CharField(null=True, max_length=1000000, blank=True)
-    sellers = models.CharField(null=True, max_length=1000000, blank=True)
+    categories = models.TextField(null=True, blank=True)
+    items = models.TextField(null=True, blank=True)
+    sellers = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return 'Black List'
@@ -142,6 +142,7 @@ class Store(models.Model):
     name = models.CharField(max_length=100, verbose_name='Магазин')
     description = models.TextField(null=True, blank=True, verbose_name='Описание магазина')
     owner = models.CharField(null=True, max_length=255, verbose_name='Владелец магазина')
+    sima_filter = models.ForeignKey(SimaFilter, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.name
