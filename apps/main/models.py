@@ -39,7 +39,6 @@ class SimaItem(models.Model):
     stocks = models.IntegerField(null=True, blank=True, default=0)
     attrs = models.TextField(null=True, blank=True)
 
-
     def __str__(self):
         return self.name
 
@@ -124,3 +123,29 @@ class XMLFeed(models.Model):
     class Meta:
         verbose_name = 'XML Feed'
         verbose_name_plural = 'XML Feed'
+
+
+class MarketPlace(models.Model):
+    name = models.CharField(null=True, max_length=255, verbose_name='Название')
+    api_key = models.CharField(null=True, max_length=1000, verbose_name='API KEY')
+    store = models.ForeignKey('main.Store', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Market Place'
+        verbose_name_plural = 'Market Place'
+
+
+class Store(models.Model):
+    name = models.CharField(max_length=100, verbose_name='Магазин')
+    description = models.TextField(null=True, blank=True)
+    owner = models.CharField(null=True, max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Магазин'
+        verbose_name_plural = 'Магазин'

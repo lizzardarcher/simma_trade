@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="358331fd-6562-4b40-a337-9f0da4bb208a" name="Sima Trade">
-        <fileTransfer accessType="SFTP" host="94.241.143.223" port="22" sshConfigId="1f42c2ce-825e-49d5-8e42-56ebbfe8c5b6" sshConfig="root@94.241.143.223:22 password">
+        <fileTransfer rootFolder="/var/www/html/sima_trade" accessType="SFTP" host="94.241.143.223" port="22" sshConfigId="1f42c2ce-825e-49d5-8e42-56ebbfe8c5b6" sshConfig="root@94.241.143.223:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
