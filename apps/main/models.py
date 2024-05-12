@@ -140,8 +140,8 @@ class MarketPlace(models.Model):
 
 class Store(models.Model):
     name = models.CharField(max_length=100, verbose_name='Магазин')
-    description = models.TextField(null=True, blank=True)
-    owner = models.CharField(null=True, max_length=255)
+    description = models.TextField(null=True, blank=True, verbose_name='Описание магазина')
+    owner = models.CharField(null=True, max_length=255, verbose_name='Владелец магазина')
 
     def __str__(self):
         return self.name

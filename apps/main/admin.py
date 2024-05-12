@@ -61,3 +61,13 @@ class SimaBlacklistAdmin(admin.ModelAdmin):
 @admin.register(XMLFeed)
 class XMLFeedAdmin(admin.ModelAdmin):
     ...
+
+
+@admin.register(Store)
+class StoreAdmin(admin.ModelAdmin):
+    ...
+
+
+@admin.register(MarketPlace)
+class MarketPlaceAdmin(admin.ModelAdmin):
+    ...
