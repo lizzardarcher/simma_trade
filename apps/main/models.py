@@ -75,7 +75,8 @@ class SimaCategory(models.Model):
 
 
 class SimaFilter(models.Model):
-    filter_id = models.PositiveIntegerField(unique=True, primary_key=True)
+    filter_id = models.PositiveIntegerField(unique=True, primary_key=True, auto_created=True)
+    name = models.CharField(max_length=255, null=False, blank=False, verbose_name='Краткое название ЧС')
     max_price = models.DecimalField(null=True, max_digits=10, decimal_places=2, verbose_name='Максимальная цена')
     min_stock = models.PositiveIntegerField(null=True, verbose_name='Минимальный остаток на складе')
     max_width = models.PositiveIntegerField(null=True, blank=True, verbose_name='Максимальная Ширина')
@@ -86,8 +87,7 @@ class SimaFilter(models.Model):
     min_depth = models.PositiveIntegerField(null=True, blank=True, verbose_name='Минимальная Глубина')
 
     def __str__(self):
-        return str(self.filter_id) + ' - Макс Цена: ' + str(self.max_price) + ' - Мин Остаток на складе' + str(
-            self.min_stock)
+        return 'Фильтр: ' + self.name
 
     class Meta:
         verbose_name = 'Фильтр Сима Лэнд'
@@ -106,12 +106,17 @@ class SimaSettings(models.Model):
 
 
 class SimaBlacklist(models.Model):
-    categories = models.TextField(null=True, blank=True)
-    items = models.TextField(null=True, blank=True)
-    sellers = models.TextField(null=True, blank=True)
+    name = models.CharField(max_length=255, null=False, blank=False, verbose_name='Краткое название ЧС')
+    black_tm = models.TextField(null=True, blank=True, verbose_name='Торговые марки')
+    black_sids = models.TextField(null=True, blank=True, verbose_name='Товары по артикулу Simaland')
+    black_cat = models.TextField(null=True, blank=True, verbose_name='Категории')
 
     def __str__(self):
-        return 'Black List'
+        return 'ЧС: ' + self.name
+
+    class Meta:
+        verbose_name = 'ЧС'
+        verbose_name_plural = 'ЧС'
 
 
 class XMLFeed(models.Model):
@@ -142,10 +147,11 @@ class Store(models.Model):
     name = models.CharField(max_length=100, verbose_name='Магазин')
     description = models.TextField(null=True, blank=True, verbose_name='Описание магазина')
     owner = models.CharField(null=True, max_length=255, verbose_name='Владелец магазина')
-    sima_filter = models.ForeignKey(SimaFilter, on_delete=models.SET_NULL, null=True, blank=True)
+    sima_filter = models.ForeignKey(SimaFilter, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Фильтр')
+    blacklist = models.ForeignKey(SimaBlacklist, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='ЧС')
 
     def __str__(self):
-        return self.name
+        return f'{self.name} {str(self.owner)}'
 
     class Meta:
         verbose_name = 'Магазин'

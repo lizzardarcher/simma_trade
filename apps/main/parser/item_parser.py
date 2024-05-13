@@ -115,8 +115,8 @@ async def parse(session: aiohttp.ClientSession, start, stop, task_name, **kwargs
                                                     stock += s['balance']
                                             except KeyError:
                                                 pass
-                                        if item['price'] < int(SF.max_price) and int(
-                                                item['box_depth']) <= SF.max_depth and int(
+                                        if  item['price'] < int(SF.max_price) and int(
+                                            item['box_depth']) <= SF.max_depth and int(
                                             item['box_height']) <= SF.max_height and int(
                                             item['box_width']) <= SF.max_width and item['sid'] not in black_sids:
                                             trademark = ''

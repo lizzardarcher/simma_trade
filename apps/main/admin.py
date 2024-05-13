@@ -36,7 +36,7 @@ class CountryAdmin(admin.ModelAdmin):
 
 @admin.register(SimaFilter)
 class SimaFilterAdmin(admin.ModelAdmin):
-    fields = ('filter_id',
+    fields = ('name',
               'max_price',
               'min_stock',
               ('max_width',
