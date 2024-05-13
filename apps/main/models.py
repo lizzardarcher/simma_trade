@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 
 class SimaItem(models.Model):
@@ -6,13 +7,13 @@ class SimaItem(models.Model):
     sid = models.PositiveIntegerField(null=True, )
     name = models.CharField(null=True, max_length=255)
     minimum_order_quantity = models.DecimalField(null=True, max_digits=10, decimal_places=2)
-    price = models.DecimalField(null=True, max_digits=20, decimal_places=10)
-    price_max = models.DecimalField(null=True, max_digits=20, decimal_places=10)
+    price = models.FloatField(null=True, )
+    price_max = models.FloatField(null=True, )
     currency = models.CharField(null=True, max_length=3)
     boxtype_id = models.PositiveIntegerField(null=True, )
-    box_depth = models.DecimalField(null=True, max_digits=20, decimal_places=10)
-    box_height = models.DecimalField(null=True, max_digits=20, decimal_places=10)
-    box_width = models.DecimalField(null=True, max_digits=20, decimal_places=10)
+    box_depth = models.FloatField(null=True, )
+    box_height = models.FloatField(null=True, )
+    box_width = models.FloatField(null=True, )
     in_box = models.PositiveIntegerField(null=True, )
     in_set = models.PositiveIntegerField(null=True, )
     depth = models.DecimalField(null=True, max_digits=20, decimal_places=10)
@@ -144,14 +145,19 @@ class MarketPlace(models.Model):
 
 
 class Store(models.Model):
-    name = models.CharField(max_length=100, verbose_name='Магазин')
+    name = models.CharField(max_length=100, verbose_name='Магазин (только латиница)')
     description = models.TextField(null=True, blank=True, verbose_name='Описание магазина')
     owner = models.CharField(null=True, max_length=255, verbose_name='Владелец магазина')
     sima_filter = models.ForeignKey(SimaFilter, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Фильтр')
     blacklist = models.ForeignKey(SimaBlacklist, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='ЧС')
+    slug = models.SlugField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.name} {str(self.owner)}'
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Store, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Магазин'

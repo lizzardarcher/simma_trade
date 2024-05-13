@@ -1,24 +1,26 @@
+import os
 import math
 import sys
 import time
 import asyncio
-from logging.handlers import RotatingFileHandler
-
-import django
-import os
 import ast
 from pathlib import Path
 import logging
 import re
 from datetime import datetime
 import xml.etree.ElementTree as ET
+from logging.handlers import RotatingFileHandler
+import django
 
 from django.db.utils import OperationalError
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sima_trade.settings")
 django.setup()
+
 from apps.main.models import *
 from apps.main.parser import prices
+from apps.main.parser.progress import bar
+from apps.main.parser.progress import colors
 
 os.environ["PYTHONMAXSIZE"] = "3221225472"
 local_time = datetime.now().strftime('%Y-%m-%dT%H:%M+05:00')
@@ -47,9 +49,9 @@ async def create_xml(max_count, file_count):
         pairs = [(chunk[0], chunk[-1]) for chunk in chunks]
 
         for pair in pairs:
-
+            print('#' * 140)
             ts = time.time()
-            file = f'offers-{str(counter)}.xml'
+            file = f'offers-{store.slug}-{str(counter)}.xml'
             path = Path(__file__).resolve().parent.parent.parent.parent.joinpath("static").joinpath("media") / file
 
             root = ET.Element("yml_catalog", attrib={"date": f"{local_time}"})
@@ -59,40 +61,52 @@ async def create_xml(max_count, file_count):
             cts = set()
             logger.info(f'Создание файла: {file} ')
 
-            # TODO реализовать фильтр через запрос к БД
+            max_width = store.sima_filter.max_width
+            min_width = store.sima_filter.min_width
+            max_height = store.sima_filter.max_height
+            min_height = store.sima_filter.min_height
+            max_depth = store.sima_filter.max_depth
+            min_depth = store.sima_filter.min_depth
+            max_price = store.sima_filter.max_price
+
             items = SimaItem.objects.all().order_by('item_id')[pair[0]:pair[1]]
+            items_count = items.count()
 
+            bar1 = bar.ShadyBar('Подготовка списка категорий', max=items_count, suffix='%(percent)d%%')
             for item in iter(items):
-                for i in sorted(ast.literal_eval(item.categories)):
-                    cts.add(i)
+                bar1.next()
 
+                if (int(min_depth) <= int(item.box_depth) < int(max_depth) and
+                        int(min_height) <= int(item.box_height) < int(max_height) and
+                        int(min_width) <= int(item.box_width) < int(max_width) and
+                        int(item.price) <= int(max_price)):
+                    for i in sorted(ast.literal_eval(item.categories)):
+                        cts.add(i)
+            bar1.finish()
+
+            bar2 = bar.ShadyBar('Создание списка категорий', max=len(cts), suffix='%(percent)d%%')
             for cat_id in cts:
                 try:
                     ET.SubElement(categories, "category",
                                   attrib={
                                       "id": f"{str(cat_id)}"}).text = f"{SimaCategory.objects.get(cat_id=cat_id).name}"
+                    bar2.next()
                 except:
                     ET.SubElement(categories, "category", attrib={"id": f"{str(cat_id)}"})
+                    bar2.next()
+            bar2.finish()
 
             shipment_options = ET.SubElement(shop, "shipment-options")
             option = ET.SubElement(shipment_options, "option", attrib={"days": "1", "order-before": "15"})
             offers = ET.SubElement(shop, "offers")
 
-            max_width = store.sima_filter.max_width
-            min_width = store.sima_filter.min_width
-
-            max_height = store.sima_filter.max_height
-            min_height = store.sima_filter.min_height
-
-            max_depth = store.sima_filter.max_depth
-            min_depth = store.sima_filter.min_depth
-
-            max_price = store.sima_filter.max_price
-
-            for item in iter(items):
-
-                if min_depth > item.box_depth < max_depth and max_height > item.box_height < max_height and max_width > item.box_width < max_width and item.price <= max_price:
-
+            bar3 = bar.ShadyBar('Создание списка товаров', max=items_count, suffix='%(percent)d%%')
+            for item in items:
+                bar3.next()
+                if (int(min_depth) <= int(item.box_depth) < int(max_depth) and
+                        int(min_height) <= int(item.box_height) < int(max_height) and
+                        int(min_width) <= int(item.box_width) < int(max_width) and
+                        int(item.price) <= int(max_price)):
                     offer = ET.SubElement(offers, "offer", attrib={"id": f"{str(item.item_id)}", "available": "true"})
 
                     # ET.SubElement(offer, "url").text = "http://www.abc.ru/158.html"
@@ -158,16 +172,19 @@ async def create_xml(max_count, file_count):
                     param1 = ET.SubElement(offer, "param", attrib={"name": "Материал"})
                     param1.text = f"{item.stuff}"
 
-                tree = ET.ElementTree(root)
-                tree.write(path, encoding="UTF-8", xml_declaration=True)
+            bar3.finish()
 
-                await XMLFeed.objects.aupdate_or_create(defaults={'file': file}, id=counter)
-                counter += 1
+            tree = ET.ElementTree(root)
+            tree.write(path, encoding="UTF-8", xml_declaration=True)
 
-                te = time.time()
-                logger.info(f'Длина списка категорий {len(cts)}')
-                logger.info(f'Длина списка товаров {items.count()}')
-                logger.info(f'Запись файла завершена за: {te - ts:.2f} секунд')
+            await XMLFeed.objects.aupdate_or_create(defaults={'file': file}, id=counter)
+            counter += 1
+
+            te = time.time()
+            logger.info(f'Длина списка категорий {len(cts)}')
+            logger.info(f'Длина списка товаров {items_count}')
+            logger.info(
+                f'Запись файла завершена за: {math.floor((te - ts) / 60)}:{math.floor((te - ts) % 60)} минут')
 
 
 async def main():
@@ -179,9 +196,9 @@ async def main():
 
                 total = SimaItem.objects.all().count()
                 await create_xml(max_count=total, file_count=5)
-
+                # await asyncio.sleep(4)
                 os.system('systemctl start aioparser.service')
-                await asyncio.sleep(60 * 60 * 3)  # seconds * minutes * hours
+                await asyncio.sleep(60 * 60 * 6)  # seconds * minutes * hours
             except OperationalError:
                 ...
     except KeyboardInterrupt:

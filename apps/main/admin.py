@@ -60,7 +60,7 @@ class SimaBlacklistAdmin(admin.ModelAdmin):
 
 @admin.register(XMLFeed)
 class XMLFeedAdmin(admin.ModelAdmin):
-    ...
+    show_full_result_count = 1000
 
 
 @admin.register(Store)

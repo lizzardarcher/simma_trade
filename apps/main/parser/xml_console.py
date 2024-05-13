@@ -14,6 +14,7 @@ import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sima_trade.settings")
 django.setup()
+
 from apps.main.models import *
 from apps.main.parser import prices
 from apps.main.parser.progress import bar
