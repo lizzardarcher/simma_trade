@@ -121,8 +121,8 @@ async def create_xml(max_count, file_count):
 
                     for p in prices.price_ratio:
                         if float(item_price) <= p[0]:
-                            item_price = float(item_price) * p[1]
-                            item_price_max = float(item_price_max) * p[1]
+                            item_price = float(item_price) * p[1] * (1 - store.discount)
+                            item_price_max = float(item_price_max) * p[1] * (1 - store.discount)
                             break
 
                     ET.SubElement(offer, "price").text = f"{str(item_price)}"

@@ -150,6 +150,7 @@ class Store(models.Model):
     owner = models.CharField(null=True, max_length=255, verbose_name='Владелец магазина')
     sima_filter = models.ForeignKey(SimaFilter, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Фильтр')
     blacklist = models.ForeignKey(SimaBlacklist, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='ЧС')
+    discount = models.FloatField(null=True, blank=True, default=0.0, verbose_name='Скидка на опт в процентах')
     slug = models.SlugField(null=True, blank=True)
 
     def __str__(self):
