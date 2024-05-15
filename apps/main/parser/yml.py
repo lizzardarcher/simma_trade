@@ -4,6 +4,7 @@ import sys
 import time
 import asyncio
 import ast
+import traceback
 from pathlib import Path
 import logging
 import re
@@ -38,6 +39,21 @@ logging.basicConfig(
 )
 
 
+def is_filter_success(item: SimaItem, filters: dict, black_list: dict) -> bool:
+    check = False
+    if (int(filters['min_depth']) <= int(item.box_depth) < int(filters['max_depth']) and
+            int(filters['min_height']) <= int(item.box_height) < int(filters['max_height']) and
+            int(filters['min_width']) <= int(item.box_width) < int(filters['max_width']) and
+            int(item.price) <= int(filters['max_price'])):
+        if item.trademark.lower() not in black_list['black_tms'] and item.sid not in black_list['black_sids']:
+            for c in ast.literal_eval(item.categories):
+                if str(c) in black_list['black_cats']:
+                    check = False
+                    break
+                check = True
+    return check
+
+
 async def create_xml(max_count, file_count):
     stores = Store.objects.all()
     for store in stores:
@@ -47,6 +63,12 @@ async def create_xml(max_count, file_count):
         chunk_size = math.floor(max_count / file_count)
         chunks = [l_ids[i:i + chunk_size] for i in range(0, len(l_ids), chunk_size)]
         pairs = [(chunk[0], chunk[-1]) for chunk in chunks]
+
+        black_tms = ast.literal_eval(store.blacklist.black_tm)
+        black_cats = ast.literal_eval(store.blacklist.black_cat)
+        black_sids = ast.literal_eval(store.blacklist.black_sids)
+
+        black_dict = {'black_tms': black_tms, 'black_cats': black_cats, 'black_sids': black_sids}
 
         for pair in pairs:
             print('#' * 140)
@@ -69,6 +91,9 @@ async def create_xml(max_count, file_count):
             min_depth = store.sima_filter.min_depth
             max_price = store.sima_filter.max_price
 
+            filters_dict = {'max_width': max_width, 'min_width': min_width, 'max_height': max_height, 'min_height': min_height,
+                            'max_depth': max_depth, 'min_depth': min_depth, 'max_price': max_price}
+
             items = SimaItem.objects.all().order_by('item_id')[pair[0]:pair[1]]
             items_count = items.count()
 
@@ -76,10 +101,11 @@ async def create_xml(max_count, file_count):
             for item in iter(items):
                 bar1.next()
 
-                if (int(min_depth) <= int(item.box_depth) < int(max_depth) and
-                        int(min_height) <= int(item.box_height) < int(max_height) and
-                        int(min_width) <= int(item.box_width) < int(max_width) and
-                        int(item.price) <= int(max_price)):
+                # if (int(min_depth) <= int(item.box_depth) < int(max_depth) and
+                #         int(min_height) <= int(item.box_height) < int(max_height) and
+                #         int(min_width) <= int(item.box_width) < int(max_width) and
+                #         int(item.price) <= int(max_price)):
+                if is_filter_success(item=item, filters=filters_dict, black_list=black_dict):
                     for i in sorted(ast.literal_eval(item.categories)):
                         cts.add(i)
             bar1.finish()
@@ -103,10 +129,12 @@ async def create_xml(max_count, file_count):
             bar3 = bar.ShadyBar('Создание списка товаров', max=items_count, suffix='%(percent)d%%')
             for item in items:
                 bar3.next()
-                if (int(min_depth) <= int(item.box_depth) < int(max_depth) and
-                        int(min_height) <= int(item.box_height) < int(max_height) and
-                        int(min_width) <= int(item.box_width) < int(max_width) and
-                        int(item.price) <= int(max_price)):
+                # if (int(min_depth) <= int(item.box_depth) < int(max_depth) and
+                #         int(min_height) <= int(item.box_height) < int(max_height) and
+                #         int(min_width) <= int(item.box_width) < int(max_width) and
+                #         int(item.price) <= int(max_price)):
+                if is_filter_success(item=item, filters=filters_dict, black_list=black_dict):
+
                     offer = ET.SubElement(offers, "offer", attrib={"id": f"{str(item.item_id)}", "available": "true"})
 
                     # ET.SubElement(offer, "url").text = "http://www.abc.ru/158.html"
@@ -192,15 +220,14 @@ async def main():
         while True:
             try:
                 os.system('systemctl stop aioparser.service')
-                await asyncio.sleep(5)
-
+                # await asyncio.sleep(5)
                 total = SimaItem.objects.all().count()
                 await create_xml(max_count=total, file_count=5)
                 # await asyncio.sleep(4)
-                os.system('systemctl start aioparser.service')
+                # os.system('systemctl start aioparser.service')
                 await asyncio.sleep(60 * 60 * 6)  # seconds * minutes * hours
-            except OperationalError:
-                ...
+            except:
+                print(traceback.format_exc())
     except KeyboardInterrupt:
         sys.exit(0)
 
