@@ -223,11 +223,11 @@ async def main():
         while True:
             try:
                 os.system('systemctl stop aioparser.service')
-                # await asyncio.sleep(5)
+                await asyncio.sleep(5)
                 total = SimaItem.objects.all().count()
                 await create_xml(max_count=total, file_count=5)
-                # await asyncio.sleep(4)
-                # os.system('systemctl start aioparser.service')
+                await asyncio.sleep(4)
+                os.system('systemctl start aioparser.service')
                 await asyncio.sleep(60 * 60 * 6)  # seconds * minutes * hours
             except:
                 print(traceback.format_exc())
