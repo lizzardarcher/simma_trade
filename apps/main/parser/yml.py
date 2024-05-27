@@ -23,7 +23,7 @@ from apps.main.parser import prices
 from apps.main.parser.progress import bar
 from apps.main.parser.progress import colors
 
-os.environ["PYTHONMAXSIZE"] = "3221225472"
+os.environ["PYTHONMAXSIZE"] = str(3221225472)
 local_time = datetime.now().strftime('%Y-%m-%dT%H:%M+05:00')
 log_path = Path(__file__).parent.absolute() / 'log_xml.log'
 logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ def is_filter_success(item: SimaItem, filters: dict, black_list: dict) -> bool:
             int(item.price) <= int(filters['max_price'])):
         if item.trademark.lower() not in black_list['black_tms'] and item.sid not in black_list['black_sids']:
             for c in ast.literal_eval(item.categories):
-                if str(c) in black_list['black_cats']:
+                if int(c) in black_list['black_cats']:
                     check = False
                     break
                 check = True
@@ -63,13 +63,14 @@ def is_filter_success(item: SimaItem, filters: dict, black_list: dict) -> bool:
 
 
 def cleared_string(string: str):
-    '''
-    >  -->  &gt;
-    <  -->  &lt;
-    '  -->  &apos;
-    &  -->  &amp;
-    "  -->  &quot;
-    '''
+    """
+    Обработка строки с заменой символов в соответствии с требованиями к XML файлам сервиса Megamarket
+    '>'  -->  '&gt;'
+    '<'  -->  '&lt;'
+    "'"  -->  '&apos;'
+    '&'  -->  '&amp;'
+    '"'  -->  '&quot;'
+    """
     string = string.replace('>', '&gt;').replace('<', '&lt;')
     string = string.replace('&', '&amp;').replace("'", "&apos;").replace('"', '&quot;')
     return string
@@ -89,6 +90,9 @@ async def create_xml(max_count, file_count):
         chunk_size = math.floor(max_count / file_count)
         chunks = [l_ids[i:i + chunk_size] for i in range(0, len(l_ids), chunk_size)]
         pairs = [(chunk[0], chunk[-1]) for chunk in chunks]
+
+        # current_cats = []
+        # used_cats = []
 
         black_dict = {'black_tms': ast.literal_eval(store.blacklist.black_tm),
                       'black_cats': ast.literal_eval(store.blacklist.black_cat),
@@ -134,7 +138,7 @@ async def create_xml(max_count, file_count):
                 try:
                     ET.SubElement(categories, "category",
                                   attrib={
-                                      "id": f"{str(cat_id)}"}).text = f"{cleared_string(SimaCategory.objects.get(cat_id=cat_id).name)}"
+                                      "id": f"{str(cat_id)}"}).text = cleared_string(f"{SimaCategory.objects.get(cat_id=cat_id).name}")
                     bar2.next()
                 except:
                     ET.SubElement(categories, "category", attrib={"id": f"{str(cat_id)}"})
@@ -157,8 +161,8 @@ async def create_xml(max_count, file_count):
 
                     item_name = item.name
                     if item.min_qty > 1:
-                        item_name = cleared_string(f"{item_name} ({str(item.min_qty)} шт.)")
-                    ET.SubElement(offer, "name").text = f"{item_name}"
+                        item_name = f"{item_name} ({str(item.min_qty)} шт.)"
+                    ET.SubElement(offer, "name").text = cleared_string(f"{item_name}")
 
                     item_price = float(item.price) * item.min_qty
                     item_price_max = float(item.price_max) * item.min_qty
@@ -169,24 +173,24 @@ async def create_xml(max_count, file_count):
                             item_price_max = int(float(item_price_max) * p[1] * (1 - store.discount / 100))
                             break
 
-                    ET.SubElement(offer, "price").text = f"{str(item_price)}"
-                    ET.SubElement(offer, "oldprice").text = f"{str(item_price_max)}"
+                    ET.SubElement(offer, "price").text = cleared_string(f"{str(item_price)}")
+                    ET.SubElement(offer, "oldprice").text = cleared_string(f"{str(item_price_max)}")
 
-                    ET.SubElement(offer, "categoryId").text = f"{sorted(ast.literal_eval(item.categories))[0]}"
-                    ET.SubElement(offer, "picture").text = f"{item.photo_url}"
+                    ET.SubElement(offer, "categoryId").text = cleared_string(f"{sorted(ast.literal_eval(item.categories))[0]}")
+                    ET.SubElement(offer, "picture").text = cleared_string(f"{item.photo_url}")
 
                     item_vat = 0
                     if int(item.vat) == 20:
                         item_vat = 1
                     elif int(item.vat) == 10:
                         item_vat = 2
-                    ET.SubElement(offer, "vat").text = f"{str(item_vat)}"
+                    ET.SubElement(offer, "vat").text = cleared_string(f"{str(item_vat)}")
 
                     shipment_option = ET.SubElement(offer, "shipment-options")
                     ET.SubElement(shipment_option, "option", attrib={"days": "1", "order-before": "15"})
 
-                    ET.SubElement(offer, "vendor").text = f"{item.trademark}"
-                    ET.SubElement(offer, "vendorCode").text = f"{str(item.sid)}"
+                    ET.SubElement(offer, "vendor").text = cleared_string(f"{item.trademark}")
+                    ET.SubElement(offer, "vendorCode").text = cleared_string(f"{str(item.sid)}")
 
                     barcode = ''
                     try:
@@ -199,7 +203,7 @@ async def create_xml(max_count, file_count):
                     except:
                         pass
 
-                    ET.SubElement(offer, "barcode").text = f"{str(barcode)}"
+                    ET.SubElement(offer, "barcode").text = cleared_string(f"{str(barcode)}")
                     # ET.SubElement(offer, "model").text = "Indesit SB 185"
 
                     item_description = re.sub(r"<[^>]+>", "", item.description, flags=re.S)
@@ -214,7 +218,7 @@ async def create_xml(max_count, file_count):
                                           "oldprice": f"{str(item_price_max)}"})
 
                     param1 = ET.SubElement(offer, "param", attrib={"name": "Материал"})
-                    param1.text = f"{item.stuff}"
+                    param1.text = cleared_string(f"{item.stuff}")
 
             bar3.finish()
 
