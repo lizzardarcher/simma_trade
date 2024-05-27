@@ -62,6 +62,19 @@ def is_filter_success(item: SimaItem, filters: dict, black_list: dict) -> bool:
     return check
 
 
+def cleared_string(string: str):
+    '''
+    >  -->  &gt;
+    <  -->  &lt;
+    '  -->  &apos;
+    &  -->  &amp;
+    "  -->  &quot;
+    '''
+    string = string.replace('>', '&gt;').replace('<', '&lt;')
+    string = string.replace('&', '&amp;').replace("'", "&apos;").replace('"', '&quot;')
+    return string
+
+
 async def create_xml(max_count, file_count):
     """
     Асинхронная функция создания XML фида для выгрузки на мегамаркет
@@ -121,7 +134,7 @@ async def create_xml(max_count, file_count):
                 try:
                     ET.SubElement(categories, "category",
                                   attrib={
-                                      "id": f"{str(cat_id)}"}).text = f"{SimaCategory.objects.get(cat_id=cat_id).name}"
+                                      "id": f"{str(cat_id)}"}).text = f"{cleared_string(SimaCategory.objects.get(cat_id=cat_id).name)}"
                     bar2.next()
                 except:
                     ET.SubElement(categories, "category", attrib={"id": f"{str(cat_id)}"})
@@ -144,7 +157,7 @@ async def create_xml(max_count, file_count):
 
                     item_name = item.name
                     if item.min_qty > 1:
-                        item_name = f"{item_name} ({str(item.min_qty)} шт.)"
+                        item_name = cleared_string(f"{item_name} ({str(item.min_qty)} шт.)")
                     ET.SubElement(offer, "name").text = f"{item_name}"
 
                     item_price = float(item.price) * item.min_qty
@@ -152,8 +165,8 @@ async def create_xml(max_count, file_count):
 
                     for p in prices.price_ratio:
                         if float(item_price) <= p[0]:
-                            item_price = int(float(item_price) * p[1] * (1 - store.discount/100))
-                            item_price_max = int(float(item_price_max) * p[1] * (1 - store.discount/100))
+                            item_price = int(float(item_price) * p[1] * (1 - store.discount / 100))
+                            item_price_max = int(float(item_price_max) * p[1] * (1 - store.discount / 100))
                             break
 
                     ET.SubElement(offer, "price").text = f"{str(item_price)}"
@@ -191,7 +204,7 @@ async def create_xml(max_count, file_count):
 
                     item_description = re.sub(r"<[^>]+>", "", item.description, flags=re.S)
 
-                    ET.SubElement(offer, "description").text = f"{item_description}"
+                    ET.SubElement(offer, "description").text = cleared_string(f"{item_description}")
 
                     outlets = ET.SubElement(offer, "outlets")
 
