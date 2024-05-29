@@ -121,6 +121,7 @@ class SimaBlacklist(models.Model):
 
 
 class XMLFeed(models.Model):
+    created_at = models.DateTimeField(auto_now=True, null=True, blank=True)
     file = models.FileField()
 
     def __str__(self):
