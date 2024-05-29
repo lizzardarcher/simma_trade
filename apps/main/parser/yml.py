@@ -49,10 +49,11 @@ def is_filter_success(item: SimaItem, filters: dict, black_list: dict) -> bool:
     :return: bool
     """
     check = False
-    if (int(filters['min_depth']) <= int(item.box_depth) < int(filters['max_depth']) and
+    if ((int(filters['min_depth']) <= int(item.box_depth) < int(filters['max_depth']) and
             int(filters['min_height']) <= int(item.box_height) < int(filters['max_height']) and
             int(filters['min_width']) <= int(item.box_width) < int(filters['max_width']) and
-            int(item.price) <= int(filters['max_price'])):
+            int(item.price) <= int(filters['max_price'])) and
+            (int(item.price) * int(item.min_qty)) <= int(filters['max_price'])):
         if item.trademark.lower() not in black_list['black_tms'] and item.sid not in black_list['black_sids']:
             for c in ast.literal_eval(item.categories):
                 if int(c) in black_list['black_cats']:
