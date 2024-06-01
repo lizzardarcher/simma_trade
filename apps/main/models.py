@@ -128,8 +128,8 @@ class XMLFeed(models.Model):
         return self.file.name
 
     class Meta:
-        verbose_name = 'XML Feed'
-        verbose_name_plural = 'XML Feed'
+        verbose_name = 'XML Feed MegaMarket'
+        verbose_name_plural = 'XML Feed MegaMarket'
 
 
 class MarketPlace(models.Model):
