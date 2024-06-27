@@ -7,7 +7,7 @@ SECRET_KEY = 'django-insecure-8e^^l1)bfnj7bjcgil2#2!cxa#z*=p$tib98y-%f7swc2*%2mi
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['94.241.143.223', 'localhost', '127.0.0.1', 'sima-trade.ru', '*sima-trade.ru', 'www.sima-trade.ru']
+ALLOWED_HOSTS = ['185.119.57.16', 'localhost', '127.0.0.1', 'sima-trade.ru', '*sima-trade.ru', 'www.sima-trade.ru']
 CSRF_TRUSTED_ORIGINS = ['https://*.sima-trade.ru', 'https://*.127.0.0.1']
 
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -60,22 +60,26 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sima_trade.wsgi.application'
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    #  },
+    # Просрали облачный сервер за неплату
+    # Настраивать MySQL нет пока смысла
+    # ХЗ как будет развиваться проект
+
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'my_timeweb',
-        'USER': 'django',
-        # 'PASSWORD': 'onfCT56EWh,^ai',
-        'PASSWORD': 'fq-948fqf8203me',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-        }
-    }
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+     },
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'my_timeweb',
+    #     'USER': 'django',
+    #     # 'PASSWORD': 'onfCT56EWh,^ai',
+    #     'PASSWORD': 'fq-948fqf8203me',
+    #     'HOST': '127.0.0.1',
+    #     'PORT': '3306',
+    #     'OPTIONS': {
+    #         'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+    #     }
+    # }
 }
 
 AUTH_PASSWORD_VALIDATORS = [
