@@ -77,6 +77,7 @@ def cleared_string(string: str):
     return string
 
 
+# todo Создаётся один лишний пустой последний файл. Некритично, но желательно разобраться
 async def create_xml(max_count, file_count):
     """
     Асинхронная функция создания XML фида для выгрузки на мегамаркет
