@@ -6,6 +6,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
+Environment=PYTHONPATH=/var/www/html/sima_trade
 WorkingDirectory=/var/www/html/sima_trade
 ExecStart=/var/www/html/sima_trade/.venv/bin/python3.10 /var/www/html/sima_trade/apps/main/api_testing/aiotest.py
 RestartSec=10
