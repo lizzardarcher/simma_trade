@@ -76,7 +76,7 @@ class SimaCategory(models.Model):
 
 
 class SimaFilter(models.Model):
-    filter_id = models.PositiveIntegerField(unique=True, primary_key=True, auto_created=True)
+    filter_id = models.IntegerField(primary_key=True, auto_created=True)
     name = models.CharField(max_length=255, null=False, blank=False, verbose_name='Краткое название ЧС')
     max_price = models.DecimalField(null=True, max_digits=10, decimal_places=2, verbose_name='Максимальная цена')
     min_stock = models.PositiveIntegerField(null=True, verbose_name='Минимальный остаток на складе')
