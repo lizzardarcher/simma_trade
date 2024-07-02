@@ -24,7 +24,6 @@ from apps.main.parser.progress import bar
 from apps.main.parser.progress import colors
 
 os.environ["PYTHONMAXSIZE"] = str(3221225472)
-local_time = datetime.now().strftime('%Y-%m-%dT%H:%M+05:00')
 log_path = Path(__file__).parent.absolute() / 'log_xml.log'
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -84,6 +83,11 @@ async def create_xml(max_count, file_count):
     :param max_count: Общее количество товаров
     :param file_count: Количество создаваемых файлов
     """
+
+    #  Местное время в соответствии с требованиями Megamarket
+    # И возможно подойдёт для YandexMarket и Ozon. Надо проверять
+    local_time = datetime.now().strftime('%Y-%m-%dT%H:%M+05:00')
+
     stores = Store.objects.all()
     for store in stores:
 
