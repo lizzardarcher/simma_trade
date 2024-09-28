@@ -61,6 +61,8 @@ class SimaBlacklistAdmin(admin.ModelAdmin):
 @admin.register(XMLFeed)
 class XMLFeedAdmin(admin.ModelAdmin):
     show_full_result_count = 1000
+    list_display = ('created_at', 'file')
+    list_display_links = ('created_at', 'file')
 
 
 @admin.register(Store)
